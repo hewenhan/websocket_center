@@ -90,25 +90,11 @@ this.updateDeviceRuntime = function (uniqueId) {
 };
 
 this.registerWsServerAddress = function (wsAddress) {
-	redis.get('clientServerList', function (err, serversList) {
-		serversList = JSON.parse(serversList);
-		if (serversList == null || serversList.length == null) {
-			serversList = [];
-		}
-		if (serversList.indexOf(wsAddress) > -1) {
-			return;
-		}
-		serversList.push(wsAddress);
-		redis.set('clientServerList', JSON.stringify(serversList));
-	});
+	redis.zAdd('clientServerList', wsAddress, new Date().getTime());
 };
 
 this.getClientWsServer = function (callback) {
-	redis.get('clientServerList', function (err, serversList) {
-		serversList = JSON.parse(serversList);
-		if (serversList == null) {
-			serversList = [];
-		}
+	redis.zRange('clientServerList', 0, -1, function (err, serversList) {
 		callback(serversList);
 	});
 };
@@ -149,7 +135,6 @@ this.unbindClientId = function (clientId) {
 };
 
 this.sendToRemoteClient = function (clientId, json) {
-	console.log(json);
 	redis.get('wsServerBind_' + clientId, function (err, reply) {
 		var clientServersAdress = reply;
 		if (reply == null) {
@@ -168,14 +153,15 @@ this.sendToRemoteClient = function (clientId, json) {
 			} catch (e) {
 				console.log(e);
 			}
-			console.log(new Date() + ': SEND TO REMOTE SERVER ' + clientServersAdress);
+			// console.log(new Date() + ': SEND TO REMOTE SERVER ' + clientServersAdress);
 		});
 	});
 };
 
 this.sendToAllClient = function (json) {
-	redis.get('clientServerList', function (err, serversList) {
-		serversList = JSON.parse(serversList);
+	var _this = this;
+
+	_this.getClientWsServer(function (serversList) {
 		for (var i = 0; i < serversList.length; i++) {
 			var clientServersAdress = serversList[i];
 			sendToRemoteClientServer(clientServersAdress, function (clientConnection) {
@@ -197,7 +183,7 @@ this.sendToLocalClientById = function (clientId, msgJson) {
 		return;
 	}
 	server.clientIdConnections[clientId].sendMsg(msgJson);
-	console.log(new Date() + ": ON SERVER " + server.serverAddress + " SEND TO " + clientId + " SUCCESS");
+	// console.log(new Date() + ": ON SERVER " + server.serverAddress + " SEND TO " + clientId + " SUCCESS");
 };
 
 
@@ -235,9 +221,22 @@ this.getIPAdress = function () {
 };
 
 var registerClientServerAddress = function (client, serverAddress) {
+	remoteClientServerConnections[serverAddress] = {};
 	client.once('connect', function(connection) {
 		remoteClientServerConnections[serverAddress] = connection;
+
+		connection.once('close', function (reasonCode, description) {
+			delete remoteClientServerConnections[serverAddress];
+			console.log(`${new Date()}: ${serverAddress} CONNECTION IS DROPD ERROR`);
+		});
+
 		console.log(new Date() + ': ' + serverAddress+ ' IS CONNECT SUCCESS');
+	});
+
+	client.once('connectFailed', function (errorDescription) {
+		delete remoteClientServerConnections[serverAddress];
+		console.log(`${new Date()}: ${serverAddress} CONNECTI IS FAILED ERROR`);
+		console.log(errorDescription);
 	});
 };
 
@@ -249,7 +248,7 @@ this.connectToWsServers = function () {
 	var secProtocols = webSocketConfig.secProtocols;
 	_this.getClientWsServer(function (serversList) {
 		for (var i = 0; i < serversList.length; i++) {
-			if (remoteClientServerConnections[serversList[i]] != null) {
+			if (remoteClientServerConnections[serversList[i]]) {
 				// console.log(new Date() + ': ' + serversList[i] + ' CONNECTED IS WORKING RIGHT');
 				// console.log(remoteClientServerConnections[serversList[i]]);
 				continue;

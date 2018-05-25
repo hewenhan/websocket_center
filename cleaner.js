@@ -5,75 +5,63 @@ var WebSocketClient = require('websocket').client;
 var webSocketConfig = require('./config/config').websocket;
 
 var getWebsocketAddress = function (callback) {
-	redis.get('clientServerList', callback);
+	redis.zRange('clientServerList', 0, -1, function (err, serversList) {
+		callback(serversList);
+	});
 };
 
 var cleanLostWebsocketLoop = function () {
 	setTimeout(cleanLostWebsocketStart, 3000);
 };
 
-var updateServerList = function (serverList) {
-	var wsServerList = [];
-	for (var i in serverList) {
-		wsServerList.push(i);
-	}
-	redis.set('clientServerList', JSON.stringify(wsServerList), null, function (err) {
-		if (err) {
-			console.log(err);
-			return;
-		}
-		console.log('UPDATE SERVER LIST DONE');
-	});
+var removeFailedWsServer = function (wsAddress) {
+	delete serverList[wsAddress];
+	redis.zRem('clientServerList', [wsAddress]);
 };
 
 var serverList = {};
 
 var checkServerConneciton = function (serverAddress) {
-
-	if (serverList[serverAddress] != null) {
-		return;
-	}
-
 	var secProtocols = webSocketConfig.secProtocols;
 
 	var client = new WebSocketClient();
-	client.on('connect', function(connection) {
 
-		connection.on('close', function (reasonCode, description) {
+	client.once('connect', function(connection) {
+
+		connection.once('close', function (reasonCode, description) {
 			console.log('close');
-			delete serverList[serverAddress];
+			removeFailedWsServer(serverAddress);
 		});
 
 		serverList[serverAddress] = connection;
 		console.log(new Date() + ': ' + serverAddress+ ' IS CONNECT SUCCESS');
 	});
-	client.on('connectFailed', function (errorDescription) {
-		delete serverList[serverAddress];
-		updateServerList(serverList);
+
+	client.once('connectFailed', function (errorDescription) {
+		removeFailedWsServer(serverAddress);
 	});
+
 	try {
 		client.connect(serverAddress, secProtocols);
+		serverList[serverAddress] = {};
 	} catch (e) {
-		updateServerList(serverList);
+		removeFailedWsServer(serverAddress);
 		console.log('Connect To Remote Client SERVER ERROR!');
 		return;
 	}
 };
 
 var cleanLostWebsocketStart = function () {
-	getWebsocketAddress(function (err, serverList) {
-		if (err) {
-			console.log(err);
+	getWebsocketAddress(function (redisServerList) {
+		console.log(redisServerList);
+		if (redisServerList == null) {
 			return;
 		}
-		if (serverList == null) {
-			return;
-		}
-
-		serverList = JSON.parse(serverList);
-		console.log(serverList);
-		for (var i = 0; i < serverList.length; i++) {
-			checkServerConneciton(serverList[i]);
+		for (var i = 0; i < redisServerList.length; i++) {
+			if (serverList[redisServerList[i]]) {
+				continue;
+			}
+			checkServerConneciton(redisServerList[i]);
 		}
 	});
 	cleanLostWebsocketLoop();

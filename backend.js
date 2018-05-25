@@ -9,8 +9,6 @@ var reqHttp = require("request_http");
 
 var fns = require('./apps/common/wsFunctions');
 
-var gatewayAddress = 'ws://127.0.0.1:28764';
-
 var sendToClient = function (cid, userData, callback) {
 	var cidNum = Number(cid);
 	var cidBuff = Buffer.alloc(16);
@@ -159,13 +157,13 @@ var connectToSever = function () {
 	var client = new WebSocketClient();
 
 
-	client.on('connect', function(connection) {
+	client.once('connect', function(connection) {
 
 		console.log(new Date() + ": CONNECT TO SERVER SUCCESS");
 
 		connection.getMinutesAgoOrders();
 
-		connection.on('close', function (err) {
+		connection.once('close', function (err) {
 			if (err) {
 				console.log(err);
 			}
@@ -174,14 +172,21 @@ var connectToSever = function () {
 		})
 	});
 
-	client.on('connectFailed', function (err) {
+	client.once('connectFailed', function (err) {
 		if (err) {
 			console.log(err);
 		}
 		retryConnectToServer();
 	});
 
-	client.connect(gatewayAddress, 'a33bfaupx5jylzsh');
+	fns.getClientWsServer(function (serverList) {
+		if (serverList.length === 0) {
+			console.log('NO GATEWAY SERVER!!!');
+			retryConnectToServer();
+			return;
+		}
+		client.connect(serverList[0], 'a33bfaupx5jylzsh');
+	});
 };
 
 connectToSever();

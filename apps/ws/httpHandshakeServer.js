@@ -1,13 +1,14 @@
-var https = require('http');
+var https = require('https');
+
 var httpConfig = require('../../config/config.js').http;
 var fs = require('fs');
 
 var options = {
-	key: fs.readFileSync('cert/214034443060797.key'),
-	cert: fs.readFileSync('cert/214034443060797.pem')
+	key: fs.readFileSync('cert/214512531350797.key'),
+	cert: fs.readFileSync('cert/214512531350797.pem')
 };
 
-var server = https.createServer(function(request, response) {
+var server = https.createServer(options, function(request, response) {
 	console.log((new Date()) + ' Received request for ' + request.url);
 	response.writeHead(404);
 	response.end();
