@@ -1,0 +1,7 @@
+node_modules/
+config/
+startApp.json
+logs/
+script.json
+start.json
+app.pid
