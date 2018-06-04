@@ -70,26 +70,20 @@ var sendOrderLoop = function (_this) {
 	_this.sendOrderLoopTimeOut = setTimeout(cb, 2000);
 };
 
-wsConnection.prototype.sendCountCommand = function (uniqueid, count, serial, luckyInnings, uid) {
+wsConnection.prototype.getOrderInfoAndSend = function (orderId) {
 	var _this = this;
-	fns.getClientIdByUniqueid(uniqueid, function (err, reply) {
-		var clientId = reply;
-		// console.log(clientId);
-		var message = {
-			identity: 'backend',
-			command: 'sendToClientById',
-			clientId: clientId,
-			sendMsg: {
-				type: 'count',
-				count: count,
-				serial: serial,
-				luckyInnings: luckyInnings,
-				uid: uid
-			}
-		};
-
+	
+	redis.hGetAll(`credit_start_order_${orderId}`, function (err, orderInfo) {
+		if (err) {
+			console.log(err);
+			return;
+		}
+		if (orderInfo == null) {
+			console.log('ORDER INFO IS NULL');
+			return;
+		}
+		var message = orderInfo;
 		message = JSON.stringify(message);
-
 		_this.sendUTF(message, function (err) {
 			if (err) {
 				console.log(err);
@@ -102,45 +96,16 @@ wsConnection.prototype.sendCountCommand = function (uniqueid, count, serial, luc
 wsConnection.prototype.getMinutesAgoOrders = function () {
 	var _this = this;
 
-	var getDwjDeviceSql = `SELECT device_id FROM club_2g.deviceid_list WHERE is_dwj = "1"`;
-	query(getDwjDeviceSql, function (err, rows) {
+	var nowTime = new Date().getTime();
+	var fromTime = nowTime - (180 * 1000);
+	redis.zRevRangeByScore('credit_start_order_list', fromTime, '+inf', function (err, orderArr) {
 		if (err) {
-			console.log(err);
+			callback(err);
 			return;
 		}
-		var dwjDeviceArr = [];
-		for (var i = 0; i < rows.length; i++) {
-			dwjDeviceArr.push(String(rows[i].device_id));
+		for (var i = 0; i < orderArr.length; i++) {
+			_this.getOrderInfoAndSend(orderArr[i]);
 		}
-
-		var beforeTime = 90;
-		console.log(new Date() + ': GET ORDERS');
-		var toTime = Date.parse(new Date()) / 1000;
-		var fromTime = toTime - beforeTime;
-		redis.send_command('ZREVRANGEBYSCORE', ['order_devicerun', toTime, fromTime], function (err, reply) {
-			console.log(new Date() + ': GET ORDERS DONE');
-			console.log(reply);
-			if (err) {
-				console.log(err);
-				return;
-			}
-			for (var i = 0; i < reply.length; i++) {
-				var orderArr = reply[i].split('_');
-				var order = orderArr[0];
-				var uniqueId = String(orderArr[1]);
-				var number = parseInt(orderArr[2]);
-				var type = parseInt(orderArr[3]);
-				var luckyInnings = parseInt(orderArr[4] || 0);
-				var uid = orderArr[5] || 0;
-
-				if (dwjDeviceArr.indexOf(uniqueId) === -1) {
-					_this.sendCountCommand(uniqueId, number, order, luckyInnings, uid);
-					continue;
-				}
-				sendTcpCountCommand(uniqueId, number, order);
-			}
-		});
-
 	});
 
 	sendOrderLoop(_this);
