@@ -84,6 +84,7 @@ wsConnection.prototype.getOrderInfoAndSend = function (orderId) {
 		}
 		var message = orderInfo;
 		message = JSON.stringify(message);
+		console.log(message);
 		_this.sendUTF(message, function (err) {
 			if (err) {
 				console.log(err);
