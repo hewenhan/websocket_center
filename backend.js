@@ -72,7 +72,7 @@ var sendOrderLoop = function (_this) {
 
 wsConnection.prototype.getOrderInfoAndSend = function (orderId) {
 	var _this = this;
-	
+
 	redis.hGetAll(`credit_start_order_${orderId}`, function (err, orderInfo) {
 		if (err) {
 			console.log(err);
@@ -103,6 +103,7 @@ wsConnection.prototype.getMinutesAgoOrders = function () {
 			callback(err);
 			return;
 		}
+		console.log(orderArr);
 		for (var i = 0; i < orderArr.length; i++) {
 			_this.getOrderInfoAndSend(orderArr[i]);
 		}
