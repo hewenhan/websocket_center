@@ -1,5 +1,3 @@
-var https = require('https');
-
 var httpConfig = require('../../config/config.js').http;
 var fs = require('fs');
 
@@ -8,7 +6,17 @@ var options = {
 	cert: fs.readFileSync('cert/214512531350797.pem')
 };
 
-var server = https.createServer(options, function(request, response) {
+// // wss
+// var https = require('https');
+// var server = https.createServer(options, function(request, response) {
+// 	console.log((new Date()) + ' Received request for ' + request.url);
+// 	response.writeHead(404);
+// 	response.end();
+// });
+
+// ws
+var https = require('http');
+var server = https.createServer(function(request, response) {
 	console.log((new Date()) + ' Received request for ' + request.url);
 	response.writeHead(404);
 	response.end();

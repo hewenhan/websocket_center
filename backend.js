@@ -73,7 +73,7 @@ var sendOrderLoop = function (_this) {
 wsConnection.prototype.getOrderInfoAndSend = function (orderId) {
 	var _this = this;
 
-	redis.hGetAll(`credit_start_order_${orderId}`, function (err, orderInfo) {
+	redis.send_command('HGETALL', [`credit_start_order_${orderId}`], function (err, orderInfo) {
 		if (err) {
 			console.log(err);
 			return;
@@ -82,9 +82,17 @@ wsConnection.prototype.getOrderInfoAndSend = function (orderId) {
 			console.log('ORDER INFO IS NULL');
 			return;
 		}
-		var message = orderInfo;
-		message = JSON.stringify(message);
+		var message = {
+			identity: 'backend',
+			command: 'sendToClientByUniqueId',
+			clientId: orderInfo.device_id,
+			sendMsg: {
+				type: 'count',
+				data: orderInfo
+			}
+		};
 		console.log(message);
+		message = JSON.stringify(message);
 		_this.sendUTF(message, function (err) {
 			if (err) {
 				console.log(err);
@@ -99,11 +107,15 @@ wsConnection.prototype.getMinutesAgoOrders = function () {
 
 	var nowTime = new Date().getTime();
 	var fromTime = nowTime - (180 * 1000);
-	redis.zRevRangeByScore('credit_start_order_list', fromTime, '+inf', function (err, orderArr) {
+
+	console.log(`${new Date()}: GET ORDERS`);
+
+	redis.send_command('ZRANGEBYSCORE', ['credit_start_order_list', fromTime, '+inf'], function (err, orderArr) {
 		if (err) {
 			callback(err);
 			return;
 		}
+		console.log(`${new Date()}: GET ORDERS DONE`);
 		console.log(orderArr);
 		for (var i = 0; i < orderArr.length; i++) {
 			_this.getOrderInfoAndSend(orderArr[i]);
