@@ -1,15 +1,25 @@
 {
   "name": "websocket_center",
-  "version": "0.0.4",
-  "private": true,
-  "scripts": {
-    "start": "node ./app.js"
-  },
+  "version": "0.0.6",
+  "description": "This is a frame of websocket developers for nodejs",
+  "main": "app.js",
   "dependencies": {
     "heapdump": "~0.3.7",
-    "redis-connection-pool": "~1.5.0",
     "redis-pool-fns": "^1.3.2",
-    "request_http": "^1.1.55",
     "websocket": "^1.0.26"
-  }
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hewenhan/websocket_center.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hewenhan/websocket_center/issues"
+  },
+  "homepage": "https://github.com/hewenhan/websocket_center#readme"
 }
