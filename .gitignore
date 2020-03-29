@@ -1,7 +1,8 @@
 node_modules/
 config/
 startApp.json
-logs/
+logs/login.log
+package-lock.json
 script.json
 start.json
 app.pid

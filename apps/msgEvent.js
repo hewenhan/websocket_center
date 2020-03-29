@@ -36,7 +36,7 @@ var clientCommands = function (data, connection) {
 			}
 			var logData = new Date() + ':\n	UNIQUE_ID: ' + data.uniqueid + '\n	CLIENT_ID: ' + connection.clientId + "\n";
 			var logFile = './logs/login.log';
-			fs.appendFile(logFile, logData, {encoding: 'utf8', flag: 'a+'});
+			fs.appendFile(logFile, logData, {encoding: 'utf8', flag: 'a+'}, function () {});
 			var result = {
 				type: 'loginConfirm',
 				serial: data.serial

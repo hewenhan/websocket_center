@@ -1,7 +1,7 @@
 # DESCRIPTION
-`version v0.0.2`
+`version v0.0.6`
 
-This is a frame of websocket developers for nodejs v6.2.2
+This is a frame of websocket developers for nodejs v10.15.2
 
 ## FEATURE
 - ### DISTRIBUTED
@@ -13,55 +13,14 @@ This is a frame of websocket developers for nodejs v6.2.2
 - ### EXTEND PROTOCOL SUPPORT
 	- #### ON MESSAGE PING/PONG SUPPORT
 - ### REDIS CONNECTION POOL
-- ### MYSQL CONNECTION POOL
-
-## FOLDER TREE
-- __apps__
-	- __common__
-		- wsFunctions.js
-	- __ws__
-		- connectionsProcess.js
-		- httpHandshakeServer.js
-		- websocketServer.js
-	- msgEvent.js
-- __config__
-	- config.js
-- __doc__
-	- serverDocument.md
-- __libs__
-	- query.js
-	- redis.js
-- app.js
-- package.json
-
-### package.json
-		{
-			"name": "websocket_v2",
-			"version": "0.0.2",
-			"private": true,
-			"scripts": {
-				"start": "node ./app.js"
-			},
-			"dependencies": {
-				"websocket": "~1.0.23",
-				"heapdump": "~0.3.7",
-				"mysql": "~2.11.1",
-				"redis-connection-pool": "~1.5.0"
-			}
-		}
 
 ### ILLUSTRATION
 
-
-# LIB
-### `nodejs v6.2.2`
-### `npm v3.9.5`
-### `redis v3.0.3`
-### `mysql-server v5.6.31`
 # USEAGE
 ## Download the full project folder
 install all package form folder root path the package.js file like:
 
+    /* npm install */
     /* npm install */
 
 and run app.js file with node
@@ -109,14 +68,6 @@ Like connection.sendMsg({success: true});
 		    } // options for createClient of node-redis, optional 
 		};
 		
-		this.mysql = {
-			host: "127.0.0.1",
-			port: 3306,
-			user: 'hewenhan',
-			password: '233233233sql',
-			database: 'uu'
-		};
-		
 		this.echoRule = {
 		    enabled: false,
 		    pingMsg: {          //INIT ping massage JSON OBJ
@@ -128,6 +79,8 @@ Like connection.sendMsg({success: true});
 		    pingInterval: 3,    //second
 		    outOfCountKickConnection: 5,   // out of this count then kick this connection
 		};
+
+		this.gatewayHostName = 'ws://192.168.10.102';
 
 ### echoRule:
 if your websocket keepalive ping/pong is not support by ISP.
@@ -217,7 +170,6 @@ change the `enable` to `true` to enable the message ping/pong.
 		server recive date only accept command:
 
 `sendToClientById`, `sendToAllClient`, `sendToLocalClientById`, `sendToAllLocatClient`.
-
 		{
 			identity: 'backend',
 			command: 'sendToClientById',

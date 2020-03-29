@@ -22,3 +22,8 @@ setTimeout(function () {
 	var path = require('path');
 	fs.writeFileSync(path.join(__dirname, 'app.pid'), process.pid);
 }, argv['-L']);
+
+// process.on('uncaughtException', (err, origin) => {
+// 	console.log('Caught exception: ' + err);
+// 	console.log('Exception origin: ' + origin);
+// });
