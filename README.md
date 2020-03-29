@@ -20,12 +20,11 @@ This is a frame of websocket developers for nodejs v10.15.2
 ## Download the full project folder
 install all package form folder root path the package.js file like:
 
-    /* npm install */
-    /* npm install */
+    npm install
 
 and run app.js file with node
 
-	/* node app.js */
+	node app.js
 
 then your websocket project was already run.
 
