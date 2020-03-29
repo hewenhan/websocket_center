@@ -1,5 +1,4 @@
 node_modules/
-config/
 startApp.json
 logs/login.log
 package-lock.json
