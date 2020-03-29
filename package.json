@@ -1,6 +1,6 @@
 {
   "name": "websocket_center",
-  "version": "0.0.6",
+  "version": "0.1.6",
   "description": "This is a frame of websocket developers for nodejs",
   "main": "app.js",
   "dependencies": {
